@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Brain, Users, Map, LineChart, Home, Shield, Heart, PulseIcon, ShieldCheck } from "lucide-react";
+import { Brain, Users, Map, LineChart, Home } from "lucide-react";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -40,11 +40,8 @@ const Navbar = () => {
           to="/" 
           className="flex items-center gap-2 font-bold text-xl transition-transform hover:scale-[1.02] active:scale-[0.98]"
         >
-          <div className="text-primary bg-primary/10 p-1.5 rounded-full">
-            <ShieldCheck size={20} className="text-primary" />
-          </div>
-          <span className="text-primary">Health</span>
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">Resilience</span>
+          <span className="text-primary">Urban</span>
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">Health</span>
         </Link>
         
         <nav className="hidden md:flex items-center space-x-1">

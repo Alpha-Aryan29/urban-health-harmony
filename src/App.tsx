@@ -11,7 +11,6 @@ import MentalHealth from "./pages/MentalHealth";
 import Community from "./pages/Community";
 import Dashboard from "./pages/Dashboard";
 import Navbar from "./components/layout/Navbar";
-import Footer from "./components/layout/Footer";
 
 const queryClient = new QueryClient();
 
@@ -33,7 +32,6 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
-        <Footer />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
