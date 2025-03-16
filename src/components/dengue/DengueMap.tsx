@@ -48,11 +48,23 @@ const lowRiskIcon = new L.Icon({
   popupAnchor: [1, -34],
 });
 
-// Mumbai center coordinates
-const MUMBAI_CENTER = [19.0760, 72.8777];
+// Mumbai center coordinates - explicitly typed as [number, number] (LatLngTuple)
+const MUMBAI_CENTER: [number, number] = [19.0760, 72.8777];
+
+// Define the type for our marker data
+interface MarkerData {
+  position: [number, number]; // Explicitly define as LatLngTuple
+  name: string;
+  cases: number;
+  details: string;
+}
 
 // Sample data for dengue outbreaks
-const dengueData = {
+const dengueData: {
+  highRisk: MarkerData[];
+  mediumRisk: MarkerData[];
+  lowRisk: MarkerData[];
+} = {
   highRisk: [
     { position: [19.0825, 72.8411], name: "Andheri East", cases: 89, details: "Active breeding sites detected" },
     { position: [19.0454, 72.8891], name: "Dharavi", cases: 76, details: "Overcrowded area with poor drainage" },
@@ -103,7 +115,7 @@ const DengueMap = () => {
 
   // Filter markers based on severity selection
   const getVisibleMarkers = () => {
-    let markers = [];
+    let markers: MarkerData[] = [];
     
     if (severity === "all" || severity === "high") {
       markers = [...markers, ...dengueData.highRisk];
@@ -121,7 +133,7 @@ const DengueMap = () => {
   };
   
   // Get icon based on risk level
-  const getMarkerIcon = (marker) => {
+  const getMarkerIcon = (marker: MarkerData) => {
     if (dengueData.highRisk.some(m => m.name === marker.name)) {
       return highRiskIcon;
     } else if (dengueData.mediumRisk.some(m => m.name === marker.name)) {
