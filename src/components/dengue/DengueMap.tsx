@@ -1,24 +1,94 @@
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
-import { Layers, AlertTriangle, Info, RefreshCw, Calendar, Filter } from "lucide-react";
+import { Layers, AlertTriangle, Info, RefreshCw, Calendar, Filter, Plus, Minus } from "lucide-react";
+import { MapContainer, TileLayer, Marker, Popup, ZoomControl, useMap } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+
+// Fix for Leaflet marker icons
+import icon from "leaflet/dist/images/marker-icon.png";
+import iconShadow from "leaflet/dist/images/marker-shadow.png";
+
+let DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
+
+// Custom marker icons for different risk levels
+const highRiskIcon = new L.Icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+});
+
+const mediumRiskIcon = new L.Icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png",
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+});
+
+const lowRiskIcon = new L.Icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-yellow.png",
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+});
+
+// Mumbai center coordinates
+const MUMBAI_CENTER = [19.0760, 72.8777];
+
+// Sample data for dengue outbreaks
+const dengueData = {
+  highRisk: [
+    { position: [19.0825, 72.8411], name: "Andheri East", cases: 89, details: "Active breeding sites detected" },
+    { position: [19.0454, 72.8891], name: "Dharavi", cases: 76, details: "Overcrowded area with poor drainage" },
+    { position: [19.0359, 72.8552], name: "Worli", cases: 65, details: "Recent surge in cases" },
+  ],
+  mediumRisk: [
+    { position: [19.0177, 72.8563], name: "Dadar", cases: 42, details: "Moderate cases reported" },
+    { position: [19.1136, 72.9081], name: "Powai", cases: 37, details: "Cases increasing steadily" },
+    { position: [19.0596, 72.8295], name: "Bandra West", cases: 31, details: "Recent cleanup operations ongoing" },
+    { position: [19.0212, 72.8424], name: "Lower Parel", cases: 29, details: "Construction sites under surveillance" },
+    { position: [19.0895, 72.8656], name: "Santacruz", cases: 25, details: "Preventive measures implemented" },
+  ],
+  lowRisk: [
+    { position: [19.1765, 72.9480], name: "Mulund", cases: 14, details: "Limited cases reported" },
+    { position: [19.2147, 72.9784], name: "Thane", cases: 12, details: "Situation under control" },
+    { position: [19.0623, 72.8826], name: "Kurla", cases: 9, details: "Improved sanitation efforts" },
+    { position: [19.0328, 72.8426], name: "Prabhadevi", cases: 7, details: "Few isolated cases" },
+    { position: [19.0191, 73.0394], name: "Navi Mumbai", cases: 5, details: "Regular monitoring in place" },
+    { position: [18.9542, 72.8358], name: "Colaba", cases: 4, details: "Few cases, well contained" },
+    { position: [19.1554, 72.8369], name: "Borivali", cases: 3, details: "Minimal cases reported" },
+    { position: [19.0438, 72.9452], name: "Ghatkopar", cases: 2, details: "Preventive measures effective" },
+  ]
+};
 
 const DengueMap = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [timeframe, setTimeframe] = useState("weekly");
   const [severity, setSeverity] = useState("all");
   const [visualizationMode, setVisualizationMode] = useState("heatmap");
-  const mapRef = useRef(null);
+  const [activeTab, setActiveTab] = useState("this-week");
   
   useEffect(() => {
     // Simulate loading data
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1500);
+    }, 1000);
     
     return () => clearTimeout(timer);
   }, []);
@@ -30,6 +100,36 @@ const DengueMap = () => {
     { label: "Recovery Rate", value: "76%", change: "+2%", trend: "up" },
     { label: "Alert Level", value: "Moderate", trend: "neutral" }
   ];
+
+  // Filter markers based on severity selection
+  const getVisibleMarkers = () => {
+    let markers = [];
+    
+    if (severity === "all" || severity === "high") {
+      markers = [...markers, ...dengueData.highRisk];
+    }
+    
+    if (severity === "all" || severity === "moderate") {
+      markers = [...markers, ...dengueData.mediumRisk];
+    }
+    
+    if (severity === "all" || severity === "low") {
+      markers = [...markers, ...dengueData.lowRisk];
+    }
+    
+    return markers;
+  };
+  
+  // Get icon based on risk level
+  const getMarkerIcon = (marker) => {
+    if (dengueData.highRisk.some(m => m.name === marker.name)) {
+      return highRiskIcon;
+    } else if (dengueData.mediumRisk.some(m => m.name === marker.name)) {
+      return mediumRiskIcon;
+    } else {
+      return lowRiskIcon;
+    }
+  };
   
   return (
     <div className="min-h-screen pt-20 pb-16">
@@ -86,6 +186,93 @@ const DengueMap = () => {
             </CardContent>
           </Card>
         </div>
+        
+        <Card className="mb-6 overflow-hidden">
+          <CardHeader className="pb-0">
+            <CardTitle className="text-xl">Dengue Outbreak Heatmap</CardTitle>
+            <div className="flex gap-2 mt-2">
+              <Button 
+                variant={activeTab === "this-week" ? "default" : "outline"} 
+                size="sm"
+                className={activeTab === "this-week" ? "bg-health-teal" : ""}
+                onClick={() => setActiveTab("this-week")}
+              >
+                This Week
+              </Button>
+              <Button 
+                variant={activeTab === "this-month" ? "default" : "outline"} 
+                size="sm"
+                className={activeTab === "this-month" ? "bg-health-teal" : ""}
+                onClick={() => setActiveTab("this-month")}
+              >
+                This Month
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0 mt-4">
+            <div className="h-[600px] w-full relative">
+              {isLoading ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-slate-100/50 dark:bg-slate-900/50 backdrop-blur-sm">
+                  <div className="flex flex-col items-center">
+                    <div className="h-8 w-8 rounded-full border-4 border-t-primary border-r-transparent border-b-transparent border-l-transparent animate-spin mb-3" />
+                    <p className="text-sm font-medium">Loading map data...</p>
+                  </div>
+                </div>
+              ) : (
+                <MapContainer 
+                  center={MUMBAI_CENTER} 
+                  zoom={12} 
+                  style={{ height: "100%", width: "100%" }} 
+                  zoomControl={false}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  <ZoomControl position="topleft" />
+                  
+                  {getVisibleMarkers().map((marker, index) => (
+                    <Marker 
+                      key={index} 
+                      position={marker.position} 
+                      icon={getMarkerIcon(marker)}
+                    >
+                      <Popup>
+                        <div className="p-1">
+                          <h3 className="font-bold text-base">{marker.name}</h3>
+                          <p className="text-sm mb-1"><span className="font-semibold">Cases:</span> {marker.cases}</p>
+                          <p className="text-xs text-gray-600">{marker.details}</p>
+                        </div>
+                      </Popup>
+                    </Marker>
+                  ))}
+                </MapContainer>
+              )}
+            </div>
+          </CardContent>
+          <CardFooter className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center pt-4">
+            <div className="flex gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-4 rounded-full bg-red-500"></div>
+                <span className="text-sm">High Risk Areas</span>
+                <span className="text-xs text-gray-500">({dengueData.highRisk.length} zones)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-4 rounded-full bg-orange-400"></div>
+                <span className="text-sm">Medium Risk Areas</span>
+                <span className="text-xs text-gray-500">({dengueData.mediumRisk.length} zones)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-4 rounded-full bg-yellow-300"></div>
+                <span className="text-sm">Low Risk Areas</span>
+                <span className="text-xs text-gray-500">({dengueData.lowRisk.length} zones)</span>
+              </div>
+            </div>
+            <div className="text-xs text-right text-gray-500">
+              © <a href="https://www.openstreetmap.org/copyright" className="underline">OpenStreetMap</a> contributors
+            </div>
+          </CardFooter>
+        </Card>
         
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Controls panel */}
@@ -166,79 +353,37 @@ const DengueMap = () => {
             </CardFooter>
           </Card>
           
-          {/* Map area */}
-          <Card className="glass-panel h-[600px] lg:col-span-3 relative overflow-hidden">
-            <CardContent className="absolute inset-0 p-0">
-              {isLoading ? (
-                <div className="absolute inset-0 flex items-center justify-center bg-slate-100/50 dark:bg-slate-900/50 backdrop-blur-sm">
-                  <div className="flex flex-col items-center">
-                    <div className="h-8 w-8 rounded-full border-4 border-t-primary border-r-transparent border-b-transparent border-l-transparent animate-spin mb-3" />
-                    <p className="text-sm font-medium">Loading map data...</p>
-                  </div>
-                </div>
-              ) : (
-                <div 
-                  ref={mapRef} 
-                  className="h-full w-full bg-slate-100 dark:bg-slate-800 relative"
-                >
-                  {/* Placeholder for actual map implementation */}
-                  <div className="absolute inset-0 bg-[url('https://maps.googleapis.com/maps/api/staticmap?center=19.0760,72.8777&zoom=11&size=800x800&scale=2&maptype=roadmap&style=feature:all|element:labels|visibility:off&key=YOUR_API_KEY')] bg-cover bg-center opacity-70" />
-                  
-                  {/* Heatmap overlay simulation */}
-                  <div className="absolute inset-0">
-                    {/* These would be replaced by actual heatmap visualization */}
-                    <div className="absolute h-32 w-32 rounded-full bg-red-500/30 blur-xl top-1/4 left-1/4" />
-                    <div className="absolute h-48 w-48 rounded-full bg-red-500/40 blur-xl top-1/3 left-1/3" />
-                    <div className="absolute h-40 w-40 rounded-full bg-red-500/30 blur-xl bottom-1/4 right-1/3" />
-                    <div className="absolute h-24 w-24 rounded-full bg-orange-500/30 blur-xl top-1/2 right-1/4" />
-                    <div className="absolute h-36 w-36 rounded-full bg-yellow-500/30 blur-xl bottom-1/3 left-1/4" />
-                  </div>
-                  
-                  {/* Info button */}
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="absolute top-3 right-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-sm"
-                  >
-                    <Info size={16} className="mr-1" />
-                    Legend
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-        
-        <div className="mt-8 glass-panel-sm p-4 md:p-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-            <div>
-              <h3 className="text-lg font-semibold">Prevention Measures</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+          {/* Prevention measures panel */}
+          <Card className="glass-panel-sm lg:col-span-3">
+            <CardHeader>
+              <CardTitle className="text-lg">Prevention Measures</CardTitle>
+              <CardDescription>
                 Steps to protect yourself and your community from dengue
-              </p>
-            </div>
-            <Button className="text-white bg-health-teal hover:bg-health-teal/90">
-              Download Prevention Guide
-            </Button>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {[
-              "Eliminate standing water where mosquitoes breed",
-              "Use mosquito repellent on exposed skin",
-              "Wear long-sleeved shirts and long pants",
-              "Install window and door screens",
-              "Use mosquito nets while sleeping",
-              "Apply insecticides in dark corners of the house"
-            ].map((item, i) => (
-              <div key={i} className="flex items-start gap-2">
-                <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary mt-0.5 shrink-0">
-                  {i + 1}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {[
+                "Eliminate standing water where mosquitoes breed",
+                "Use mosquito repellent on exposed skin",
+                "Wear long-sleeved shirts and long pants",
+                "Install window and door screens",
+                "Use mosquito nets while sleeping",
+                "Apply insecticides in dark corners of the house"
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary mt-0.5 shrink-0">
+                    {i + 1}
+                  </div>
+                  <p className="text-sm">{item}</p>
                 </div>
-                <p className="text-sm">{item}</p>
-              </div>
-            ))}
-          </div>
+              ))}
+            </CardContent>
+            <CardFooter className="flex justify-end">
+              <Button className="text-white bg-health-teal hover:bg-health-teal/90">
+                Download Prevention Guide
+              </Button>
+            </CardFooter>
+          </Card>
         </div>
       </div>
     </div>
