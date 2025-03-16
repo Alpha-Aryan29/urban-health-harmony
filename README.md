@@ -1,22 +1,13 @@
-# Welcome to your Lovable project
+# Welcome to our Urban Health
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/af09374e-2ec0-4ed3-9ff8-ded9cf30ac06
+**URL**: https://urbanhealth.netlify.app/
 
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/af09374e-2ec0-4ed3-9ff8-ded9cf30ac06) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
 
 **Use your preferred IDE**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected.
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
@@ -60,10 +51,28 @@ This project is built with .
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
+## About our Project
+Welcome to Urban Health Harmony, a comprehensive platform designed to empower communities by providing real-time environmental and health insights. Our mission is to combat pollution, prevent disease outbreaks, and promote mental well-being through cutting-edge technology and community collaboration.
 
-Simply open [Lovable](https://lovable.dev/projects/af09374e-2ec0-4ed3-9ff8-ded9cf30ac06) and click on Share -> Publish.
+##Features
 
-## I want to use a custom domain - is that possible?
+-Real-Time Environmental Data
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+-Air Quality Index (AQI): Track pollution levels in your area.
+
+-Temperature Monitoring: Stay updated with real-time temperature data.
+
+-Dengue Heatmap: Visualize dengue case hotspots to stay informed and take preventive measures.
+
+-AI Mental Health Chatbot
+
+-A supportive AI companion to help you navigate mental health challenges, providing resources and guidance whenever you need it.
+
+-Community Health Forum
+
+-A space for users to share health-related news, tips, and experiences, fostering a supportive and informed community.
+
+-Disease Outbreak Insights
+
+-Stay ahead of disease outbreaks with data-driven insights and actionable recommendations.
+
