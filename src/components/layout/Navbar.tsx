@@ -22,10 +22,10 @@ const Navbar = () => {
   
   const navLinks = [
     { name: "Home", path: "/", icon: <Home size={16} /> },
+    { name: "Dashboard", path: "/dashboard", icon: <LineChart size={16} /> },
     { name: "Dengue Map", path: "/dengue-map", icon: <Map size={16} /> },
     { name: "Mental Health", path: "/mental-health", icon: <Brain size={16} /> },
     { name: "Community", path: "/community", icon: <Users size={16} /> },
-    { name: "Dashboard", path: "/dashboard", icon: <LineChart size={16} /> },
   ];
   
   return (
@@ -51,6 +51,7 @@ const Navbar = () => {
               <Link
                 key={link.path}
                 to={link.path}
+                aria-current={isActive ? "page" : undefined}
                 className={cn(
                   "px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-1.5",
                   isActive
@@ -91,6 +92,7 @@ const Navbar = () => {
               <Link
                 key={link.path}
                 to={link.path}
+                aria-current={isActive ? "page" : undefined}
                 className={cn(
                   "py-3 flex flex-col items-center justify-center flex-1 text-xs font-medium transition-colors",
                   isActive
